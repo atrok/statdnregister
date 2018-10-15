@@ -1,0 +1,1 @@
+java -jar statdnregister-0.0.1-SNAPSHOT.jar -Dcom.genesyslab.platform.commons.log.loggerFactory=com.genesyslab.platform.commons.log.Log4J2LoggerFactoryImpl -Dlog4j.configurationFile=C:\Users\atrok\git\statdnregister\target\log4j2.xml

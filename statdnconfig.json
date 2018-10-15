@@ -1,0 +1,9 @@
+{
+  "configserverurl_":"tcp://default:password@esx35-ip20-105.gws.genesys.com:8888",
+  "configserverurl":"tcp://default:password@ccare-demo1-01.bur.us.gendev:2020",
+  "statservername":"Stat_Server_test",
+  "extensionstatistic":"CurrentDNState",
+  "virtualqueuestatistic":"CurrNumberWaitingCalls",
+  "virtualqueuestatistic__":"CurrentDNState",
+  "clientapplication":"default"
+}

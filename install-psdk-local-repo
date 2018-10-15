@@ -1,0 +1,27 @@
+#!/bin/bash
+
+PSDK=$(cd "$PSDKLIBS"; pwd);
+LOCALREPO=$(cd libs; pwd);
+pushd "$PSDKLIBS"
+echo $PSDKLIBS
+echo $PSDK
+echo $LOCALREPO
+
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file 
+-Dfile="$PSDK/lib/pom/appblocks-bom.pom" 
+-DpomFile="$PSDK/lib/pom/appblocks-bom.pom" 
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file 
+-Dfile="$PSDK/lib/pom/protocols-bom.pom" 
+-DpomFile="$PSDK/lib/pom/protocols-bom.pom" 
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/protocol.jar" -DpomFile="$PSDK/lib/pom/protocol.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/reportingprotocol.jar" -DpomFile="$PSDK/lib/pom/reportingprotocol.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/configurationprotocol.jar" -DpomFile="$PSDK/lib/pom/configurationprotocol.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/comappblock.jar" -DpomFile="$PSDK/lib/pom/comappblock.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/warmstandbyappblock.jar" -DpomFile="$PSDK/lib/pom/warmstandbyappblock.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/commonsappblock.jar" -DpomFile="$PSDK/lib/pom/commonsappblock.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/commons.jar" -DpomFile="$PSDK/lib/pom/commons.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/connection.jar" -DpomFile="$PSDK/lib/pom/connection.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/kvlists.jar" -DpomFile="$PSDK/lib/pom/kvlists.pom"
+mvn org.apache.maven.plugins:maven-install-plugin:2.5.2:install-file -Dfile="$PSDK/lib/system.jar" -DpomFile="$PSDK/lib/pom/system.pom"
+
+popd

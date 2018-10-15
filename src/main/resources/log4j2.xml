@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<Appenders>
+		<File name="File1" fileName="PSDK.log" append="false"
+			immediateFlush="true">
+			<PatternLayout pattern="%-d %-5p %-15.25c [%t] - %m%n" />
+		</File>
+		<File name="File2" fileName="statdnregister.log">
+			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
+		</File>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Logger name="com.genesyslab.platform" level="info"
+			additivity="false">
+			<AppenderRef ref="File1" />
+		</Logger>
+		<Logger name="com.genesys.x" level="info"
+			additivity="false">
+			<AppenderRef ref="File2" />
+		</Logger>
+		<Root level="trace">
+			<AppenderRef ref="Console" />
+		</Root>
+	</Loggers>
+</Configuration>
