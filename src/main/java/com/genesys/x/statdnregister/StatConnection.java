@@ -43,7 +43,7 @@ public class StatConnection implements ChannelListener, MessageHandler {
     
     private StatServerProtocol statServer;
     
-    private RegistrationResult collector=new RegistrationResult();
+    private RegistrationResult collector=null;
     private ResultHandler resulthandler;
     
     public StatConnection() {
@@ -88,6 +88,7 @@ public class StatConnection implements ChannelListener, MessageHandler {
             statServer.setEndpoint(endpoint);
             try {
                 statServer.open();
+                collector=new RegistrationResult(app.getName());
             } catch (ProtocolException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
@@ -219,7 +220,7 @@ public class StatConnection implements ChannelListener, MessageHandler {
             Message msg = statServer.request(open);
             if (msg instanceof EventStatisticOpened) {
             	collector.addRequest(open);
-            	logger.printf(Level.DEBUG,"statIDList added: req_id=%d\n", ((EventStatisticOpened) msg).getReferenceId());
+            	logger.printf(Level.TRACE,"statIDList added: req_id=%d\n", ((EventStatisticOpened) msg).getReferenceId());
                 return (EventStatisticOpened) msg;
             } else {
                 logger.error("Unexpected:\n"+msg.toString());

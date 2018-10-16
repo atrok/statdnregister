@@ -20,14 +20,21 @@ public class RegistrationResult {
     	
 		private HashMap<Integer, RequestOpenStatisticEx> statIDList = new HashMap<Integer, RequestOpenStatisticEx>();
 		
-		private HashMap<String, HashMap> results=new HashMap<String,HashMap>();
+		private HashMap<String, HashMap> statsrv=new HashMap<String,HashMap>();
 		
 		private ArrayList processed=new ArrayList();
 		
+		private String appname="";
 		public void addRequest(RequestOpenStatisticEx req){
 			
 			statIDList.put(req.getReferenceId(),req);
 			
+		}
+		
+		public RegistrationResult(){}
+		
+		public RegistrationResult(String appname){
+			this.appname=appname;
 		}
 		
 		public void add(EventInfo ev){
@@ -43,12 +50,15 @@ public class RegistrationResult {
         	
         	StatisticObject statObject=req.getStatisticObject();
         	
-        	logger.printf(Level.DEBUG,"Removed from statIDList: req_id=%d ", req.getReferenceId());
+        	logger.printf(Level.TRACE,"Removed from statIDList: req_id=%d ", req.getReferenceId());
         	String[] dns=statObject.getObjectId().split("@");
-        	String status=ev.getStringValue();
+        	String status=resolve(ev.getStringValue());
         	
-        	logger.printf(Level.TRACE,"DN=%s, type=%s, result=%s\n", statObject.getObjectId(), statObject.getObjectType().toString(), status);	
+        	logger.printf(Level.DEBUG,"Statserver=%s, Switch=%s, DN=%s, type=%s, result=%s\n", this.appname, dns[1], dns[0], statObject.getObjectType().toString(), status);	
 			/* filling in results */
+        	
+        	if (!statsrv.containsKey(this.appname)){statsrv.put(this.appname, new HashMap<String, HashMap>());}
+        	HashMap<String,HashMap> results=statsrv.get(this.appname);
         	
         	if(!results.containsKey(dns[1])) results.put(dns[1], new HashMap<Integer,HashMap>());
         	HashMap<String,HashMap> dnlist=results.get(dns[1]);
@@ -56,16 +66,16 @@ public class RegistrationResult {
         	if(!dnlist.containsKey(status)){
         		HashMap<String, Object> dnstatuses=new HashMap();
         		dnstatuses.put("count",0);
-        		dnstatuses.put("list", new HashMap());
+        		//dnstatuses.put("list", new HashMap());
         		dnlist.put(status, dnstatuses);
         	}
         	Integer count=(Integer) dnlist.get(status).get("count");
         	count++;
         	dnlist.get(status).put("count",count);
         	
-        	HashMap statusdnlist=(HashMap) dnlist.get(status).get("list");
-        	statusdnlist.put("req_id "+req.getReferenceId(), "DN "+dns[0]);
-        	dnlist.get(status).put("list",statusdnlist);
+        	//HashMap statusdnlist=(HashMap) dnlist.get(status).get("list");
+        	//statusdnlist.put("req_id "+req.getReferenceId(), "DN "+dns[0]);
+        	//dnlist.get(status).put("list",statusdnlist);
         	
         	results.put(dns[1],dnlist);
         	
@@ -75,6 +85,14 @@ public class RegistrationResult {
 			}
 	}
 		
+		private String resolve(String stringValue) {
+			// TODO Auto-generated method stub
+			switch(stringValue){
+			case "0": return "NotMonitored";
+			default: return "Monitored";
+			}
+		}
+
 		public boolean isDone(){
 			return statIDList.isEmpty();
 		}
@@ -82,7 +100,7 @@ public class RegistrationResult {
 			ObjectMapper mapper =new ObjectMapper();
 			String jsonFromMap;
 			try {
-				jsonFromMap = mapper.writeValueAsString(this.results);
+				jsonFromMap = mapper.writeValueAsString(this.statsrv);
 				logger.printf(Level.INFO,"JSON=%s\n", jsonFromMap);
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block

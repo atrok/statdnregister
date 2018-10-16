@@ -17,7 +17,7 @@
 			additivity="false">
 			<AppenderRef ref="File1" />
 		</Logger>
-		<Logger name="com.genesys.x" level="info"
+		<Logger name="com.genesys.x" level="debug"
 			additivity="false">
 			<AppenderRef ref="File2" />
 		</Logger>
