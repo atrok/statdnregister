@@ -119,7 +119,7 @@ public class statdnregister {
                     System.out.println(s.getDBID());
                     dnq.setSwitchDbid(s.getDBID());
                     Collection<CfgDN> dnlist = dnProvider.getDNs(dnq);
-                    logger.printf(Level.INFO,"TServer: %s, Switch: %s, number of DNs: %d\n",server.getName(), s.getName(),dnlist.size());
+                    logger.printf(Level.INFO,"StatServer=%s, TServer=%s, Switch=%s, count=%d\n",app.getName(), server.getName(), s.getName(),dnlist.size());
 
                     for (CfgDN d: dnlist){
                         if (d.getType() == CfgDNType.CFGExtension){

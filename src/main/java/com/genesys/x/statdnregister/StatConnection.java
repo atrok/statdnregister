@@ -51,7 +51,7 @@ public class StatConnection implements ChannelListener, MessageHandler {
 //        statServer.addChannelListener(this);
         statServer.addChannelListener(channelListener);
         statServer.setMessageHandler(this);
-        logger.info("Creating Stat Connection");
+        logger.info("Creating StatServer Connection");
     }
     
     public void setSetMessageHandler(MessageHandler mh){
@@ -63,15 +63,15 @@ public class StatConnection implements ChannelListener, MessageHandler {
             @Override
             public void run() {*/
         try {
-            logger.info("Running");
+            //logger.info("Running");
             CfgApplication app = appProvider.getApplication(config.getStatServerName());
             int port = 0;
 
             if (app.getPortInfos() != null && app.getPortInfos().size() > 0) {
                 for (CfgPortInfo pi : app.getPortInfos()) {
-                    logger.printf(Level.INFO,"ID: %s Port: %s\n", pi.getId(), pi.getPort());
+                    logger.printf(Level.INFO,"port_id=%s, port=%s\n", pi.getId(), pi.getPort());
                     if (pi.getId() == "" || pi.getId() == "default") {
-                    	logger.printf(Level.INFO,"getPort is %s\n",pi.getPort());
+                    	logger.printf(Level.INFO,"acquiring port is %s\n",pi.getPort());
                         port = Integer.valueOf(pi.getPort());
                         break;
                     }
@@ -114,12 +114,12 @@ public class StatConnection implements ChannelListener, MessageHandler {
 
     @Override
     public void onChannelOpened(EventObject eventObject) {
-        logger.trace("stat opened");
+        logger.debug("stat opened");
     }
 
     @Override
     public void onChannelClosed(ChannelClosedEvent channelClosedEvent) {
-    	logger.trace("stat closed");
+    	logger.debug("stat closed");
         
     }
 
@@ -173,7 +173,7 @@ public class StatConnection implements ChannelListener, MessageHandler {
                 if (msg == null){
                     //System.out.format("RequestPeekStatistic %d is null\n", id);
                 }else {
-                	logger.printf(Level.INFO,"Invalid result for %d. %s", id, msg.toString());
+                	logger.printf(Level.WARN,"Invalid result for req_id=%d, error={%s}", id, msg.toString());
             }
             }
 
@@ -219,10 +219,10 @@ public class StatConnection implements ChannelListener, MessageHandler {
             Message msg = statServer.request(open);
             if (msg instanceof EventStatisticOpened) {
             	collector.addRequest(open);
-            	logger.printf(Level.DEBUG,"statIDList added: %d\n", ((EventStatisticOpened) msg).getReferenceId());
+            	logger.printf(Level.DEBUG,"statIDList added: req_id=%d\n", ((EventStatisticOpened) msg).getReferenceId());
                 return (EventStatisticOpened) msg;
             } else {
-                logger.error("UNexpected:\n"+msg.toString());
+                logger.error("Unexpected:\n"+msg.toString());
             }
         } catch (ProtocolException e) {
             e.printStackTrace();

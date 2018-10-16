@@ -43,11 +43,11 @@ public class RegistrationResult {
         	
         	StatisticObject statObject=req.getStatisticObject();
         	
-        	logger.printf(Level.TRACE,"Removed from statIDList: %d, ", req.getReferenceId());
+        	logger.printf(Level.DEBUG,"Removed from statIDList: req_id=%d ", req.getReferenceId());
         	String[] dns=statObject.getObjectId().split("@");
         	String status=ev.getStringValue();
         	
-        	logger.printf(Level.TRACE,"DN %s, type %s, result %s\n", statObject.getObjectId(), statObject.getObjectType().toString(), status);	
+        	logger.printf(Level.TRACE,"DN=%s, type=%s, result=%s\n", statObject.getObjectId(), statObject.getObjectType().toString(), status);	
 			/* filling in results */
         	
         	if(!results.containsKey(dns[1])) results.put(dns[1], new HashMap<Integer,HashMap>());
@@ -83,7 +83,7 @@ public class RegistrationResult {
 			String jsonFromMap;
 			try {
 				jsonFromMap = mapper.writeValueAsString(this.results);
-				logger.printf(Level.INFO,"JSON :\n%s\n", jsonFromMap);
+				logger.printf(Level.INFO,"JSON=%s\n", jsonFromMap);
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
