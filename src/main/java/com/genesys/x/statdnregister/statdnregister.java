@@ -30,6 +30,7 @@ import com.google.inject.Injector;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,6 +73,22 @@ public class statdnregister {
 	}
 	
 
+	private static class DNobj{
+		private String tenant=null;
+		private String name=null;
+		private String statistic=null;
+		private StatisticObjectType statobjtype=null;
+		public DNobj(String tenant, String name, StatisticObjectType statobjtype, String statistic){
+			this.tenant=tenant;
+			this.name=name;
+			this.statistic=statistic;
+			this.statobjtype=statobjtype;
+		}
+		public String getTenant(){return tenant;}
+		public String getName(){return name;}
+		public String getStatistic(){return statistic;}
+		public StatisticObjectType getStatObjType(){return statobjtype;}
+	}
 	
 	public static void main(String[] args) throws InterruptedException, ProtocolException {
 		
@@ -106,6 +123,9 @@ public class statdnregister {
         try {
             CfgApplication app = appProvider.getApplication(config.getStatServerName());
             long start= System.currentTimeMillis();
+            ArrayList<DNobj> dnobjlist=new ArrayList<DNobj>();
+            
+            logger.info("Start collecting data about depended switch objects and its DNs");
             for (CfgConnInfo con: app.getAppServers()) {
                 CfgApplication server = con.getAppServer();
                 if (server.getType() == CfgAppType.CFGTServer) {
@@ -116,47 +136,53 @@ public class statdnregister {
                     //System.out.println(s.getName());
 
                     CfgDNQuery dnq = new CfgDNQuery();
-                    System.out.println(s.getDBID());
+                    //System.out.println(s.getDBID());
                     dnq.setSwitchDbid(s.getDBID());
                     Collection<CfgDN> dnlist = dnProvider.getDNs(dnq);
                     logger.printf(Level.INFO,"StatServer=%s, TServer=%s, Switch=%s, count=%d\n",app.getName(), server.getName(), s.getName(),dnlist.size());
 
-                    for (CfgDN d: dnlist){
-                        if (d.getType() == CfgDNType.CFGExtension){
-                        	msghandler.setTreshold(msghandler.getTreshold()+1);
-                        } else if (d.getType() == CfgDNType.CFGVirtACDQueue){
-                        	msghandler.setTreshold(msghandler.getTreshold()+1);
-                        }else if (d.getType() == CfgDNType.CFGRoutingQueue){
-                        	msghandler.setTreshold(msghandler.getTreshold()+1);
-                        }
-
-                    }
-                    
+                    String tenant=s.getTenant().getName();
                     
                     for (CfgDN d: dnlist){
-                        EventStatisticOpened opened = null;
-                        String name = String.format("%s@%s", d.getNumber(), s.getName());
-                        String tenant = d.getTenant().getName();
+                    	String name = String.format("%s@%s", d.getNumber(), s.getName());
+                        
                         
                         if (d.getType() == CfgDNType.CFGExtension){
-                            opened = statServer.openStatistic(tenant, name,
-                                    StatisticObjectType.RegularDN, config.getExtensionStatistic());
+                        	msghandler.setTreshold(msghandler.getTreshold()+1);
+                        	dnobjlist.add(new DNobj(tenant, name,
+                                    StatisticObjectType.RegularDN, config.getExtensionStatistic()));
                         } else if (d.getType() == CfgDNType.CFGVirtACDQueue){
-                            opened = statServer.openStatistic(tenant, name,
-                                    StatisticObjectType.Queue, config.getVirtualQueueStatistic());
+                        	msghandler.setTreshold(msghandler.getTreshold()+1);
+                        	dnobjlist.add(new DNobj(tenant, name,
+                                    StatisticObjectType.Queue, config.getExtensionStatistic()));
                         }else if (d.getType() == CfgDNType.CFGRoutingQueue){
-                            opened = statServer.openStatistic(tenant, name,
-                                    StatisticObjectType.RoutePoint, config.getVirtualQueueStatistic());
+                        	msghandler.setTreshold(msghandler.getTreshold()+1);
+                        	dnobjlist.add(new DNobj(tenant, name,
+                                    StatisticObjectType.RoutePoint, config.getExtensionStatistic()));
                         }
 
-                        if (opened != null){
-                            //System.out.format("Registered %s with id %d\n", name, opened.getReferenceId());
-                            statServer.peekStatistic(opened.getReferenceId());
-                                                        
-                        }
                     }
+                    
+                }
+                
+
+            }
+            
+            logger.printf(Level.INFO, "There are %d DNs in the queue", msghandler.getTreshold() );
+            
+            for (DNobj d: dnobjlist){
+                EventStatisticOpened opened = null;
+                    opened = statServer.openStatistic(d.getTenant(), d.getName(),
+                            d.getStatObjType(), d.getStatistic());
+                
+
+                if (opened != null){
+                    //System.out.format("Registered %s with id %d\n", name, opened.getReferenceId());
+                    statServer.peekStatistic(opened.getReferenceId());
+                                                
                 }
             }
+            
             logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
         } catch (Exception ex){
             ex.printStackTrace();
