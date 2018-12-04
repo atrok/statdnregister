@@ -153,7 +153,8 @@ public class StatConnection implements ChannelListener, MessageHandler {
 			break;
 
 		default:
-			logger.warn(message.toString());
+			logger.printf(Level.INFO," Unexpected %s, enable DEBUG logging for details", message.messageName());
+			logger.debug(message.toString());
 
 		}
 
