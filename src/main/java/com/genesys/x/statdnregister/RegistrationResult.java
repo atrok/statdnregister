@@ -3,6 +3,8 @@ package com.genesys.x.statdnregister;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -16,6 +18,7 @@ import com.genesyslab.platform.reporting.protocol.statserver.events.EventInfo;
 import com.genesyslab.platform.reporting.protocol.statserver.requests.RequestOpenStatisticEx;
 
 public class RegistrationResult {
+
 	private static final Logger logger = LogManager.getLogger();
 
 	private HashMap<Integer, RequestOpenStatisticEx> statIDList = new HashMap<Integer, RequestOpenStatisticEx>();
@@ -25,6 +28,8 @@ public class RegistrationResult {
 	private ArrayList processed = new ArrayList();
 
 	private String appname = "";
+
+	private Pattern findswitchregex = Pattern.compile("(?:.(?!@))+$");
 
 	public void addRequest(RequestOpenStatisticEx req) {
 
@@ -54,7 +59,9 @@ public class RegistrationResult {
 				StatisticObject statObject = req.getStatisticObject();
 
 				logger.printf(Level.TRACE, "Removed from statIDList: req_id=%d ", req.getReferenceId());
-				String[] dns = statObject.getObjectId().split("@");
+
+				String[] dns = dissectResource(statObject.getObjectId());
+
 				String status = resolve(ev.getStringValue());
 
 				logger.printf(Level.DEBUG, "Statserver=%s, Switch=%s, DN=%s, type=%s, result=%s\n", this.appname,
@@ -66,7 +73,7 @@ public class RegistrationResult {
 				}
 				HashMap<String, HashMap> results = statsrv.get(this.appname);
 
-				if (!results.containsKey(dns[1])) //Switch name
+				if (!results.containsKey(dns[1])) // Switch name
 					results.put(dns[1], new HashMap<Integer, HashMap>());
 				HashMap<String, HashMap> dnlist = results.get(dns[1]);
 
@@ -94,6 +101,19 @@ public class RegistrationResult {
 		}
 	}
 
+	private String[] dissectResource(String objectId) {
+		Matcher m = findswitchregex.matcher(objectId);
+		if (m.find()) {
+			int start = m.start();
+			String dn = objectId.substring(0, start);
+			String sw = m.group().substring(1);
+			return new String[] { dn, sw };
+		}
+
+		logger.printf(Level.WARN, "Can't resolve resource name of %s", objectId);
+		return new String[] { objectId, "Unknown (Can't resolve!)" };
+	}
+
 	private String resolve(String stringValue) {
 		// TODO Auto-generated method stub
 		switch (stringValue) {
@@ -108,10 +128,11 @@ public class RegistrationResult {
 		return statIDList.isEmpty();
 	}
 
-	public void printJSON() {
+	public void printJSON(long start) {
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonFromMap;
 		try {
+			logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
 			jsonFromMap = mapper.writeValueAsString(this.statsrv);
 			logger.printf(Level.INFO, "JSON=%s\n", jsonFromMap);
 		} catch (JsonProcessingException e) {

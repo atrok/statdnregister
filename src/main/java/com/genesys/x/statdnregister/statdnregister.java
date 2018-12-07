@@ -49,11 +49,13 @@ public class statdnregister {
 	private static class DNResultHandler implements ResultHandler{
 
 		int threshold=0;
+		
+		long start= System.currentTimeMillis();
 
 		@Override
 		public void onResult(RegistrationResult res) {
 			// TODO Auto-generated method stub
-			res.printJSON();
+			res.printJSON(start);
 			res.empty();
 		}
 
@@ -122,7 +124,7 @@ public class statdnregister {
 
         try {
             CfgApplication app = appProvider.getApplication(config.getStatServerName());
-            long start= System.currentTimeMillis();
+            //long start= System.currentTimeMillis();
             ArrayList<DNobj> dnobjlist=new ArrayList<DNobj>();
             
             logger.info("Start collecting data about depended switch objects and its DNs");
@@ -183,7 +185,7 @@ public class statdnregister {
                 }
             }
             
-            logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
+            //logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
         } catch (Exception ex){
             ex.printStackTrace();
         }
