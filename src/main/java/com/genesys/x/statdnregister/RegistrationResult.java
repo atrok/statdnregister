@@ -24,6 +24,8 @@ public class RegistrationResult {
 	private HashMap<Integer, RequestOpenStatisticEx> statIDList = new HashMap<Integer, RequestOpenStatisticEx>();
 
 	private HashMap<String, HashMap> statsrv = new HashMap<String, HashMap>();
+	
+	private StatServerResult ss_result=null;
 
 	private ArrayList processed = new ArrayList();
 
@@ -66,7 +68,7 @@ public class RegistrationResult {
 
 				logger.printf(Level.DEBUG, "Statserver=%s, Switch=%s, DN=%s, type=%s, result=%s\n", this.appname,
 						dns[1], dns[0], statObject.getObjectType().toString(), status);
-				/* filling in results */
+				/* filling in results old version 
 
 				if (!statsrv.containsKey(this.appname)) {
 					statsrv.put(this.appname, new HashMap<String, HashMap>());
@@ -94,6 +96,15 @@ public class RegistrationResult {
 				// dnlist.get(status).put("list",statusdnlist);
 
 				results.put(dns[1], dnlist);
+				*/
+				
+				if(ss_result==null)
+					ss_result=new StatServerResult(this.appname);
+				
+				SwitchResult sw=ss_result.getSwitch(dns[1]);
+				
+				sw.updateStatus(status);
+				
 
 			}
 		} catch (Exception ex) {
@@ -131,14 +142,24 @@ public class RegistrationResult {
 	public void printJSON(long start) {
 		ObjectMapper mapper = new ObjectMapper();
 		String jsonFromMap;
+		logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
+		jsonFromMap = this.ss_result.toString();
+		logger.printf(Level.INFO, "JSON=%s\n", jsonFromMap);
+
+	}
+	
+	public static String getJSONString(Map map) {
+		ObjectMapper mapper = new ObjectMapper();
+		String jsonFromMap="";
 		try {
-			logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
-			jsonFromMap = mapper.writeValueAsString(this.statsrv);
-			logger.printf(Level.INFO, "JSON=%s\n", jsonFromMap);
+			
+			jsonFromMap = mapper.writeValueAsString(map);
+			
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return jsonFromMap;
 
 	}
 
@@ -149,6 +170,75 @@ public class RegistrationResult {
 
 	public void empty() {
 		processed.clear();
+	}
+	
+	private class StatServerResult {
+		public String getName() {
+			return name;
+		}
+
+		private String name=null;
+		private ArrayList<SwitchResult> switches=new ArrayList<SwitchResult>();
+		public StatServerResult(String name){
+			this.name=name;
+		};
+		
+		public boolean add(SwitchResult sw){
+			return switches.add(sw);
+		}
+		
+		public SwitchResult getSwitch(String sw){
+			for(SwitchResult s: switches){
+				if(s.getName().equals(sw))
+					return s;
+			}
+			
+			SwitchResult s=new SwitchResult(sw);
+			switches.add(s);
+			
+			return s;
+		}
+		
+		public String toString(){
+			StringBuilder sb=new StringBuilder();
+			sb.append("[");
+			for (SwitchResult s: switches){
+				sb.append(s.toString()).append(",");
+			}
+			sb.deleteCharAt(sb.length()-1);
+			sb.append("]");
+			return "{ statserver:"+this.name+", switches: "+sb.toString()+"}";
+		}
+	}
+	
+	private class SwitchResult{
+		public String getName() {
+			return name;
+		}
+
+		public void updateStatus(String state) {
+			// TODO Auto-generated method stub
+			if (!status.containsKey(state)) {
+				status.put(state, 0);
+			}
+			Integer count = (Integer) status.get(state);
+			count++;
+			status.put(state, count);
+			
+		}
+
+
+		private String name=null;
+		private HashMap<String,Integer> status=new HashMap<String,Integer>();
+		
+		public SwitchResult(String name){
+			this.name=name;
+		}
+		
+		public String toString(){
+			
+			return "{ name:"+name+", status:"+RegistrationResult.getJSONString(status)+"}";
+		}
 	}
 
 }
