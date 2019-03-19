@@ -22,7 +22,8 @@ import java.net.URL;
 @Singleton
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StatDNConfiguration implements IStatDNConfiguration {
-    private String configServerUrl;
+    private String configServerUrl_pri;
+    private String configServerUrl_bu;
     private String statServerName;
     private String extensionStatistic;
     private String virtualQueueStatistic;
@@ -65,13 +66,25 @@ public class StatDNConfiguration implements IStatDNConfiguration {
     }
 
     @Override
-    public String getConfigServerUrl() {
-        return configServerUrl;
+    public String[] getConfigServerUrl() {
+    	String[] s;
+    	if(configServerUrl_bu!=null){
+    		s=new String[]{configServerUrl_pri,configServerUrl_bu};
+    	}else{
+    		s=new String[]{configServerUrl_pri};
+    	}
+    	
+        return s;
     }
 
-    @JsonProperty("configserverurl")
-    private void setConfigServerUrl(String configServerUrl) {
-        this.configServerUrl = configServerUrl;
+    @JsonProperty("configserverurl_pri")
+    private void setConfigServerUrl_pri(String configServerUrl) {
+        this.configServerUrl_pri = configServerUrl;
+    }
+    
+    @JsonProperty("configserverurl_bu")
+    private void setConfigServerUrl_bu(String configServerUrl) {
+        this.configServerUrl_bu = configServerUrl;
     }
 
     @Override

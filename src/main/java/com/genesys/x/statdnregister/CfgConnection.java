@@ -25,19 +25,21 @@ public class CfgConnection implements ChannelListener, MessageHandler {
     private IConfService configService = null;
     private Thread receiver = null;
     private Semaphore openMutex;
+    private WarmStandby ws;
 
     public IConfService getConfigService() { return this.configService; }
 
     @Inject
     public CfgConnection(IStatDNConfiguration config, ChannelListener listener) throws InterruptedException, URISyntaxException {
         System.out.println("Creating CfgConnection");
-        URI uri = new URI(config.getConfigServerUrl());
-        Endpoint ep = new Endpoint(uri);
-        configServer = new ConfServerProtocol(ep, false);
+        String[] uri = config.getConfigServerUrl();
+        //Endpoint ep = new Endpoint(uri);
+        configServer=new ConfServerProtocol();
         configServer.setClientName(config.getClientApplication());
-        String unpw[] = uri.getUserInfo().split(":");
-        configServer.setUserName(unpw[0]);
-        configServer.setUserPassword(unpw[1]);
+
+        Endpoint[] ep=initWarmStandby(config.getConfigServerUrl());
+        ws = new WarmStandby(configServer, ep);
+        
         this.configService = ConfServiceFactory.createConfService(configServer);
 
         configServer.addChannelListener(this);
@@ -47,10 +49,31 @@ public class CfgConnection implements ChannelListener, MessageHandler {
         //configServer.setMessageHandler(this);
     }
 
+    private Endpoint[] initWarmStandby(String[] urls) throws URISyntaxException{
+    	
+    	Endpoint[] ep= new Endpoint[urls.length];
+    	int i=0;
+    	String unpw[]=null;
+    	for (String u: urls){
+    		URI uri = new URI(u);
+    		ep[i]=new Endpoint(uri);
+    		i++;
+    		if(unpw==null)
+    			unpw = uri.getUserInfo().split(":");
+    		
+    	}
+        configServer.setUserName(unpw[0]);
+        configServer.setUserPassword(unpw[1]);
+    	return ep;
+    	
+    }
+    
+    
     public void close(){
         try {
             if (configServer.getState() != ChannelState.Closed) {
-                configServer.close();
+                //configServer.close();
+            	ws.close();
             }
         } catch (Exception ex){}
     }
@@ -61,10 +84,12 @@ public class CfgConnection implements ChannelListener, MessageHandler {
 
     public void open(boolean async) throws ProtocolException, InterruptedException {
         if (async){
-            configServer.beginOpen();
+            //configServer.beginOpen();
+        	ws.openAsync();
         } else{
             openMutex = new Semaphore(0);
-            configServer.beginOpen();
+            //configServer.beginOpen();
+            ws.openAsync();
             openMutex.acquire();
             openMutex = null;
         }
