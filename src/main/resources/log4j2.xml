@@ -5,7 +5,7 @@
 			immediateFlush="true">
 			<PatternLayout pattern="%-d %-5p %-15.25c [%t] - %m%n" />
 		</File>
-		<File name="File2" fileName="statdnregister.log">
+		<File name="File2" fileName="statdnregister.log" append="false">
 			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
 		</File>
 		<Console name="Console" target="SYSTEM_OUT">
