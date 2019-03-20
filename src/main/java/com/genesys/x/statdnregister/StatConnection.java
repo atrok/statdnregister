@@ -58,14 +58,14 @@ public class StatConnection implements ChannelListener, MessageHandler {
 		statServer.setMessageHandler(mh);
 	}
 
-	public void open() {
+	public void open() throws ProtocolException {
 		/*
 		 * new Thread(new Runnable() {
 		 * 
 		 * @Override public void run() {
 		 */
 		try {
-			// logger.info("Running");
+			logger.info("Opening connection to "+config.getStatServerName());
 			CfgApplication app = appProvider.getApplication(config.getStatServerName());
 			int port = 0;
 
@@ -87,14 +87,16 @@ public class StatConnection implements ChannelListener, MessageHandler {
 			Endpoint endpoint = new Endpoint(app.getServerInfo().getHost().getName(), port);
 
 			statServer.setEndpoint(endpoint);
-			try {
-				statServer.open();
-				collector = new RegistrationResult(app.getName());
-			} catch (ProtocolException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+
+			statServer.open();
+			collector = new RegistrationResult(app.getName());
+		} catch (ProtocolException e) {
+			e.printStackTrace();
+			logger.warn("Error while opening connection to "+config.getStatServerName());
+			throw e;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -153,7 +155,7 @@ public class StatConnection implements ChannelListener, MessageHandler {
 			break;
 
 		default:
-			logger.printf(Level.INFO," Unexpected %s, enable DEBUG logging for details", message.messageName());
+			logger.printf(Level.INFO, " Unexpected %s, enable DEBUG logging for details", message.messageName());
 			logger.debug(message.toString());
 
 		}

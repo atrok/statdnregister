@@ -103,10 +103,10 @@ public class statdnregister {
         IStatDNConfiguration config = injector.getInstance(IStatDNConfiguration.class);
 
         CfgConnection cfgserver = injector.getInstance(CfgConnection.class);
-        cfgserver.open(false);
+
 
         StatConnection statServer = injector.getInstance(StatConnection.class);
-        statServer.open();
+       
         
         DNResultHandler msghandler=getMessageHandler();
         
@@ -123,6 +123,9 @@ public class statdnregister {
         IConfigDNProvider dnProvider = injector.getInstance(IConfigDNProvider.class);
 
         try {
+            cfgserver.open(false);
+            statServer.open();
+            
             CfgApplication app = appProvider.getApplication(config.getStatServerName());
             //long start= System.currentTimeMillis();
             ArrayList<DNobj> dnobjlist=new ArrayList<DNobj>();
@@ -186,8 +189,15 @@ public class statdnregister {
             }
             
             //logger.printf(Level.INFO,"Time elapsed: %d sec\n", (System.currentTimeMillis()-start)/1000);
+        }catch (ProtocolException ex){
+        	logger.error(ex.getMessage());
         } catch (Exception ex){
             ex.printStackTrace();
+        }finally{
+        	logger.info("Exiting...");
+            Thread.sleep(2000);
+            cfgserver.close();
+            statServer.close();
         }
 
         /*
@@ -198,9 +208,7 @@ public class statdnregister {
         }
         */
         
-        Thread.sleep(2000);
-        cfgserver.close();
-        statServer.close();
+
 
     }
 

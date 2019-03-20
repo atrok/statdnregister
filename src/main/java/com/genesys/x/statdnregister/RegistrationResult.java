@@ -17,6 +17,7 @@ import com.genesyslab.platform.reporting.protocol.statserver.StatisticObject;
 import com.genesyslab.platform.reporting.protocol.statserver.events.EventInfo;
 import com.genesyslab.platform.reporting.protocol.statserver.requests.RequestOpenStatisticEx;
 
+enum DNSTATUS {Monitored,NotMonitored};
 public class RegistrationResult {
 
 	private static final Logger logger = LogManager.getLogger();
@@ -32,6 +33,8 @@ public class RegistrationResult {
 	private String appname = "";
 
 	private Pattern findswitchregex = Pattern.compile("(?:.(?!@))+$");
+	
+
 
 	public void addRequest(RequestOpenStatisticEx req) {
 
@@ -64,7 +67,7 @@ public class RegistrationResult {
 
 				String[] dns = dissectResource(statObject.getObjectId());
 
-				String status = resolve(ev.getStringValue());
+				DNSTATUS status = resolve(ev.getStringValue());
 
 				logger.printf(Level.DEBUG, "Statserver=%s, Switch=%s, DN=%s, type=%s, result=%s\n", this.appname,
 						dns[1], dns[0], statObject.getObjectType().toString(), status);
@@ -125,13 +128,13 @@ public class RegistrationResult {
 		return new String[] { objectId, "Unknown (Can't resolve!)" };
 	}
 
-	private String resolve(String stringValue) {
+	private DNSTATUS resolve(String stringValue) {
 		// TODO Auto-generated method stub
 		switch (stringValue) {
 		case "0":
-			return "NotMonitored";
+			return DNSTATUS.NotMonitored;
 		default:
-			return "Monitored";
+			return DNSTATUS.Monitored;
 		}
 	}
 
@@ -216,23 +219,25 @@ public class RegistrationResult {
 			return name;
 		}
 
-		public void updateStatus(String state) {
+		public void updateStatus(DNSTATUS status2) {
 			// TODO Auto-generated method stub
-			if (!status.containsKey(state)) {
-				status.put(state, 0);
+			if (!status.containsKey(status2)) {
+				status.put(status2, 0);
 			}
-			Integer count = (Integer) status.get(state);
+			Integer count = (Integer) status.get(status2);
 			count++;
-			status.put(state, count);
+			status.put(status2, count);
 			
 		}
 
 
 		private String name=null;
-		private HashMap<String,Integer> status=new HashMap<String,Integer>();
+		private HashMap<DNSTATUS,Integer> status=new HashMap<DNSTATUS,Integer>();
 		
 		public SwitchResult(String name){
 			this.name=name;
+			status.put(DNSTATUS.Monitored, 0);
+			status.put(DNSTATUS.NotMonitored, 0);
 		}
 		
 		public String toString(){
