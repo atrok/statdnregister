@@ -207,7 +207,7 @@ public class RegistrationResult {
 			}
 			sb.deleteCharAt(sb.length()-1);
 			sb.append("]");
-			return "{ statserver:"+this.name+", switches: "+sb.toString()+"}";
+			return "{ \"statserver\":\""+this.name+"\", \"switches\": "+sb.toString()+"}";
 		}
 	}
 	
@@ -237,7 +237,7 @@ public class RegistrationResult {
 		
 		public String toString(){
 			
-			return "{ name:"+name+", status:"+RegistrationResult.getJSONString(status)+"}";
+			return "{ \"name\":\""+name+"\", \"status\":"+RegistrationResult.getJSONString(status)+"}";
 		}
 	}
 
